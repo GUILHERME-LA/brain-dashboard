@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase, Memory } from '@/lib/supabase'
+import { getSupabase, Memory } from '@/lib/supabase'
 import { 
   Brain, 
   AlertTriangle, 
@@ -58,6 +58,7 @@ export default function Dashboard() {
   }, [])
 
   async function fetchMemories() {
+    const supabase = getSupabase()
     const { data, error } = await supabase
       .from('memory')
       .select('*')
