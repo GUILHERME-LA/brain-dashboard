@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { getSupabase, Memory } from '@/lib/supabase'
 import { 
   Brain, 
@@ -12,7 +12,9 @@ import {
   Filter,
   TrendingUp,
   Clock,
-  Activity
+  Activity,
+  RefreshCw,
+  Zap
 } from 'lucide-react'
 import { 
   BarChart, 
@@ -45,6 +47,9 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<string>('all')
   const [search, setSearch] = useState('')
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [newCount, setNewCount] = useState(0)
   const [stats, setStats] = useState({
     total: 0,
     errors: 0,
@@ -53,11 +58,7 @@ export default function Dashboard() {
     totalUsage: 0,
   })
 
-  useEffect(() => {
-    fetchMemories()
-  }, [])
-
-  async function fetchMemories() {
+  const fetchMemories = useCallback(async () => {
     const supabase = getSupabase()
     const { data, error } = await supabase
       .from('memory')
@@ -67,9 +68,40 @@ export default function Dashboard() {
     if (data) {
       setMemories(data)
       calculateStats(data)
+      setLastUpdate(new Date())
     }
     setLoading(false)
-  }
+  }, [])
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true)
+    await fetchMemories()
+    setNewCount(0)
+    setTimeout(() => setIsRefreshing(false), 500)
+  }, [fetchMemories])
+
+  useEffect(() => {
+    fetchMemories()
+
+    const supabase = getSupabase()
+    const channel = supabase
+      .channel('memory-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'memory' },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            setNewCount(prev => prev + 1)
+          }
+          fetchMemories()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [fetchMemories])
 
   function calculateStats(data: Memory[]) {
     const errors = data.filter(m => m.type === 'error').length
@@ -126,11 +158,31 @@ export default function Dashboard() {
               <p className="text-gray-400">Visualize memórias, erros e soluções</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 text-gray-400">
-            <Clock className="w-4 h-4" />
-            <span className="text-sm">
-              {new Date().toLocaleDateString('pt-BR')}
-            </span>
+          <div className="flex items-center gap-4">
+            {newCount > 0 && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-green-500/20 border border-green-500/50 rounded-full">
+                <Zap className="w-4 h-4 text-green-400" />
+                <span className="text-sm text-green-400">{newCount} nova(s)</span>
+              </div>
+            )}
+            <div className="flex items-center gap-2 text-gray-400 text-sm">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              <span>Auto-atualização</span>
+            </div>
+            <button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 rounded-lg text-white transition-colors"
+            >
+              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span>Atualizar</span>
+            </button>
+            <div className="flex items-center gap-2 text-gray-400">
+              <Clock className="w-4 h-4" />
+              <span className="text-sm">
+                {lastUpdate.toLocaleTimeString('pt-BR')}
+              </span>
+            </div>
           </div>
         </div>
 
