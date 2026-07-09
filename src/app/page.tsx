@@ -244,7 +244,7 @@ export default function Dashboard() {
                 </Pie>
                 <Tooltip 
                   contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px' }}
-                  formatter={(value: number, name: string) => [`${value} (${((value / stats.total) * 100).toFixed(0)}%)`, name]}
+                  formatter={(value, name) => [`${value} (${((Number(value) / stats.total) * 100).toFixed(0)}%)`, name]}
                 />
               </PieChart>
             </ResponsiveContainer>
