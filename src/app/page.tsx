@@ -131,7 +131,10 @@ export default function Dashboard() {
       acc[m.type] = (acc[m.type] || 0) + 1
       return acc
     }, {} as Record<string, number>)
-  ).map(([name, value]) => ({ name, value }))
+  ).map(([name, value]) => ({ 
+    name: name === 'web_memory' ? 'web' : name === 'interaction' ? 'interação' : name, 
+    value 
+  }))
 
   if (loading) {
     return (
@@ -230,10 +233,9 @@ export default function Dashboard() {
                   data={typeDistribution}
                   cx="50%"
                   cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} (${((percent ?? 0) * 100).toFixed(0)}%)`}
+                  innerRadius={60}
                   outerRadius={100}
-                  fill="#8884d8"
+                  paddingAngle={2}
                   dataKey="value"
                 >
                   {typeDistribution.map((_, index) => (
@@ -242,10 +244,18 @@ export default function Dashboard() {
                 </Pie>
                 <Tooltip 
                   contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px' }}
-                  itemStyle={{ color: '#fff' }}
+                  formatter={(value: number, name: string) => [`${value} (${((value / stats.total) * 100).toFixed(0)}%)`, name]}
                 />
               </PieChart>
             </ResponsiveContainer>
+            <div className="flex flex-wrap justify-center gap-3 mt-4">
+              {typeDistribution.map((entry, index) => (
+                <div key={entry.name} className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                  <span className="text-xs text-gray-400">{entry.name} ({entry.value})</span>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700">
