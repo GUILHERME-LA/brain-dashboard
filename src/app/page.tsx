@@ -496,49 +496,47 @@ function MemoryCard({ memory, isExpanded, onToggle }: { memory: Memory; isExpand
             </div>
           )}
 
-          <div className="flex items-center justify-between mt-3">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`w-3 h-3 ${i < memory.importance ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
-                  />
-                ))}
-              </div>
-              {memory.usage_count > 0 && (
-                <span className="text-xs text-gray-500 flex items-center gap-1">
-                  <Activity className="w-3 h-3" />
-                  {memory.usage_count}
-                </span>
-              )}
-              <div className="flex items-center gap-2">
-                <div className="w-16 bg-gray-600/50 rounded-full h-1.5">
-                  <div
-                    className={`h-1.5 rounded-full ${memory.success_rate >= 0.9 ? 'bg-green-400' : memory.success_rate >= 0.7 ? 'bg-yellow-400' : 'bg-red-400'}`}
-                    style={{ width: `${memory.success_rate * 100}%` }}
-                  />
-                </div>
-                <span className="text-xs text-gray-500">{(memory.success_rate * 100).toFixed(0)}%</span>
-              </div>
+          <div className="flex items-center gap-4 mt-3">
+            <div className="flex items-center gap-1">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star
+                  key={i}
+                  className={`w-3 h-3 ${i < memory.importance ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
+                />
+              ))}
             </div>
-            <button
-              onClick={onToggle}
-              className="flex items-center gap-1 text-xs text-gray-400 hover:text-purple-400 transition-colors px-2 py-1 rounded-lg hover:bg-gray-600/30"
-            >
-              {isExpanded ? (
-                <>
-                  <ChevronUp className="w-3.5 h-3.5" />
-                  <span>Recolher</span>
-                </>
-              ) : (
-                <>
-                  <ChevronDown className="w-3.5 h-3.5" />
-                  <span>Expandir</span>
-                </>
-              )}
-            </button>
+            {memory.usage_count > 0 && (
+              <span className="text-xs text-gray-500 flex items-center gap-1">
+                <Activity className="w-3 h-3" />
+                {memory.usage_count}
+              </span>
+            )}
+            <div className="flex items-center gap-2">
+              <div className="w-16 bg-gray-600/50 rounded-full h-1.5">
+                <div
+                  className={`h-1.5 rounded-full ${memory.success_rate >= 0.9 ? 'bg-green-400' : memory.success_rate >= 0.7 ? 'bg-yellow-400' : 'bg-red-400'}`}
+                  style={{ width: `${memory.success_rate * 100}%` }}
+                />
+              </div>
+              <span className="text-xs text-gray-500">{(memory.success_rate * 100).toFixed(0)}%</span>
+            </div>
           </div>
+          <button
+            onClick={onToggle}
+            className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-purple-400 transition-colors px-3 py-1.5 mt-2 rounded-lg hover:bg-gray-600/30 w-fit"
+          >
+            {isExpanded ? (
+              <>
+                <ChevronUp className="w-3.5 h-3.5" />
+                <span>Recolher</span>
+              </>
+            ) : (
+              <>
+                <ChevronDown className="w-3.5 h-3.5" />
+                <span>Expandir</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>
