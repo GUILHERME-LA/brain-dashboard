@@ -29,6 +29,7 @@ import {
   ResponsiveContainer,
   Cell
 } from 'recharts'
+import Markdown from 'react-markdown'
 
 const typeConfig: Record<string, { icon: React.ReactNode; color: string; bgColor: string; label: string }> = {
   error: { icon: <AlertTriangle className="w-5 h-5" />, color: 'text-red-400', bgColor: 'bg-red-500/20 border-red-500/30', label: 'Erro' },
@@ -459,9 +460,9 @@ function MemoryCard({ memory, isExpanded, onToggle }: { memory: Memory; isExpand
               {timeAgo(memory.created_at)}
             </span>
           </div>
-          <p className={`text-gray-200 text-sm leading-relaxed transition-all duration-300 ${isExpanded ? '' : 'line-clamp-2'}`}>
-            {memory.content}
-          </p>
+          <div className={`text-gray-200 text-sm leading-relaxed transition-all duration-300 memory-content ${isExpanded ? 'memory-content-expanded' : 'line-clamp-2'}`}>
+            <Markdown>{memory.content}</Markdown>
+          </div>
 
           {isExpanded && (
             <div className="mt-4 space-y-3 border-t border-gray-600/30 pt-4">
