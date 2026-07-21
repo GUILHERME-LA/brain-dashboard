@@ -15,7 +15,9 @@ import {
   Activity,
   RefreshCw,
   Zap,
-  Star
+  Star,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react'
 import { 
   BarChart, 
@@ -76,6 +78,19 @@ export default function Dashboard() {
     avgSuccessRate: 0,
     totalUsage: 0,
   })
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
+
+  const toggleExpand = useCallback((id: string) => {
+    setExpandedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }, [])
 
   const fetchMemories = useCallback(async () => {
     const supabase = getSupabase()
@@ -405,7 +420,12 @@ export default function Dashboard() {
           </div>
           <div className="space-y-3">
             {filteredMemories.map((memory) => (
-              <MemoryCard key={memory.id} memory={memory} />
+              <MemoryCard
+                key={memory.id}
+                memory={memory}
+                isExpanded={expandedIds.has(memory.id)}
+                onToggle={() => toggleExpand(memory.id)}
+              />
             ))}
             {filteredMemories.length === 0 && (
               <div className="text-center py-12 text-gray-500">
@@ -420,11 +440,12 @@ export default function Dashboard() {
   )
 }
 
-function MemoryCard({ memory }: { memory: Memory }) {
+function MemoryCard({ memory, isExpanded, onToggle }: { memory: Memory; isExpanded: boolean; onToggle: () => void }) {
   const config = typeConfig[memory.type] || { icon: <Brain className="w-5 h-5" />, color: 'text-gray-400', bgColor: 'bg-gray-500/20 border-gray-500/30', label: memory.type }
-  
+  const hasMetadata = memory.metadata && Object.keys(memory.metadata).length > 0
+
   return (
-    <div className="group bg-gray-700/30 hover:bg-gray-700/50 rounded-xl p-4 transition-all duration-200 border border-transparent hover:border-gray-600/50">
+    <div className={`group rounded-xl p-4 transition-all duration-200 border ${isExpanded ? 'bg-gray-700/50 border-gray-600/50' : 'bg-gray-700/30 hover:bg-gray-700/50 border-transparent hover:border-gray-600/50'}`}>
       <div className="flex items-start gap-4">
         <div className={`mt-1 p-2 rounded-lg ${config.bgColor} border`}>
           {config.icon}
@@ -438,33 +459,85 @@ function MemoryCard({ memory }: { memory: Memory }) {
               {timeAgo(memory.created_at)}
             </span>
           </div>
-          <p className="text-gray-200 text-sm leading-relaxed line-clamp-2 group-hover:line-clamp-none transition-all">
+          <p className={`text-gray-200 text-sm leading-relaxed transition-all duration-300 ${isExpanded ? '' : 'line-clamp-2'}`}>
             {memory.content}
           </p>
-          <div className="flex items-center gap-4 mt-3">
-            <div className="flex items-center gap-1">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star 
-                  key={i} 
-                  className={`w-3 h-3 ${i < memory.importance ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`} 
-                />
-              ))}
-            </div>
-            {memory.usage_count > 0 && (
-              <span className="text-xs text-gray-500 flex items-center gap-1">
-                <Activity className="w-3 h-3" />
-                {memory.usage_count}
-              </span>
-            )}
-            <div className="flex items-center gap-2">
-              <div className="w-16 bg-gray-600/50 rounded-full h-1.5">
-                <div 
-                  className={`h-1.5 rounded-full ${memory.success_rate >= 0.9 ? 'bg-green-400' : memory.success_rate >= 0.7 ? 'bg-yellow-400' : 'bg-red-400'}`}
-                  style={{ width: `${memory.success_rate * 100}%` }}
-                />
+
+          {isExpanded && (
+            <div className="mt-4 space-y-3 border-t border-gray-600/30 pt-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                <div>
+                  <span className="text-gray-500 block mb-0.5">Criado em</span>
+                  <span className="text-gray-300">
+                    {new Date(memory.created_at).toLocaleString('pt-BR')}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-500 block mb-0.5">Importância</span>
+                  <span className="text-gray-300">{memory.importance}/5</span>
+                </div>
+                <div>
+                  <span className="text-gray-500 block mb-0.5">Usos</span>
+                  <span className="text-gray-300">{memory.usage_count}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500 block mb-0.5">Taxa de Sucesso</span>
+                  <span className="text-gray-300">{(memory.success_rate * 100).toFixed(0)}%</span>
+                </div>
               </div>
-              <span className="text-xs text-gray-500">{(memory.success_rate * 100).toFixed(0)}%</span>
+              {hasMetadata && (
+                <div>
+                  <span className="text-gray-500 text-xs block mb-1">Metadata</span>
+                  <pre className="text-xs text-gray-400 bg-gray-800/50 rounded-lg p-3 overflow-x-auto whitespace-pre-wrap break-words max-h-48 overflow-y-auto">
+                    {JSON.stringify(memory.metadata, null, 2)}
+                  </pre>
+                </div>
+              )}
             </div>
+          )}
+
+          <div className="flex items-center justify-between mt-3">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`w-3 h-3 ${i < memory.importance ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
+                  />
+                ))}
+              </div>
+              {memory.usage_count > 0 && (
+                <span className="text-xs text-gray-500 flex items-center gap-1">
+                  <Activity className="w-3 h-3" />
+                  {memory.usage_count}
+                </span>
+              )}
+              <div className="flex items-center gap-2">
+                <div className="w-16 bg-gray-600/50 rounded-full h-1.5">
+                  <div
+                    className={`h-1.5 rounded-full ${memory.success_rate >= 0.9 ? 'bg-green-400' : memory.success_rate >= 0.7 ? 'bg-yellow-400' : 'bg-red-400'}`}
+                    style={{ width: `${memory.success_rate * 100}%` }}
+                  />
+                </div>
+                <span className="text-xs text-gray-500">{(memory.success_rate * 100).toFixed(0)}%</span>
+              </div>
+            </div>
+            <button
+              onClick={onToggle}
+              className="flex items-center gap-1 text-xs text-gray-400 hover:text-purple-400 transition-colors px-2 py-1 rounded-lg hover:bg-gray-600/30"
+            >
+              {isExpanded ? (
+                <>
+                  <ChevronUp className="w-3.5 h-3.5" />
+                  <span>Recolher</span>
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="w-3.5 h-3.5" />
+                  <span>Expandir</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>
