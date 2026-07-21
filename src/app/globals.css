@@ -233,3 +233,26 @@ body {
   -webkit-line-clamp: unset;
   overflow: visible;
 }
+
+/* Memory collapse/expand */
+.memory-collapsed {
+  max-height: 4.5rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.memory-collapsed::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2rem;
+  background: linear-gradient(transparent, rgba(31, 41, 55, 0.95));
+  pointer-events: none;
+}
+
+.memory-expanded {
+  max-height: none;
+  overflow: visible;
+}

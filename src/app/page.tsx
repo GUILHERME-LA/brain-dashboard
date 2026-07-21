@@ -460,7 +460,7 @@ function MemoryCard({ memory, isExpanded, onToggle }: { memory: Memory; isExpand
               {timeAgo(memory.created_at)}
             </span>
           </div>
-          <div className={`text-gray-200 text-sm leading-relaxed transition-all duration-300 memory-content ${isExpanded ? 'memory-content-expanded' : 'line-clamp-2'}`}>
+          <div className={`text-gray-200 text-sm leading-relaxed transition-all duration-300 memory-content ${isExpanded ? 'memory-expanded' : 'memory-collapsed'}`}>
             <Markdown>{memory.content}</Markdown>
           </div>
 
